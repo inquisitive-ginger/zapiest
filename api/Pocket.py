@@ -21,7 +21,7 @@ class Pocket():
         """Get a list of saved pockets based on given arguments"""
         from_time = time.time() - 60 if recent else None
         pocket_response = self._service.get(count=count, tag=tag, since=from_time)[0]
-        pockets = list(pocket_response['list'].values())[0] if pocket_response['list'] else []
+        pockets = list(pocket_response['list'].values()) if pocket_response['list'] else []
 
         return pockets
 

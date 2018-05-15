@@ -1,4 +1,5 @@
 import time
+import os
 import json
 
 import cloudconvert
@@ -30,6 +31,10 @@ class CloudConvert():
         process.download(localfile=file_name)
 
         return file_name
+
+    def delete_file(self, file):
+        os.remove(file)
+
 
 
 def main():
