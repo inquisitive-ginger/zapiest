@@ -7,6 +7,7 @@ from oauth2client import file, client, tools
 
 SCOPES = 'https://www.googleapis.com/auth/drive'
 FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
+FILE_MIME_TYPE = 'application/vnd.google-apps.file'
 CREDENTIAL_FILE = '../credentials/google_drive.json'
 
 class GoogleDrive():
@@ -38,37 +39,46 @@ class GoogleDrive():
 
         return files
 
-    def get_folder_id(self, folder_name):
-        """Returns id of folder with given name"""
+    def get_id(self, name, mime_type=None):
+        """Returns id of file/folder with given name"""
         query = self.build_query_string({
-            'mimeType': ['=', FOLDER_MIME_TYPE],
-            'name': ['=', folder_name]
+            'mimeType': ['=', mime_type],
+            'name': ['=', name]
         })
 
         result = self._service.files().list(
             pageSize=1,
-            fields='files(id)',
+            fields='files(name, id)',
             q=query
         ).execute()
-        
-        id_container = result.get('files', [])
 
-        return id_container[0]['id'] if id else -1
+        id_container = result.get('files', [])
+        print(result)
+
+        return id_container[0]['id'] if len(id_container) > 0 else -1
 
     def get_files_in_folder(self, folder_name):
         """Return all of the files in a given folder"""
-        folder_id = self.get_folder_id(folder_name)
+        folder_id = self.get_id(folder_name, mime_type=FOLDER_MIME_TYPE)
         options = { 'parents': ['in', folder_id] }
         return self.get_files(options) if folder_id != -1 else []
+
+    def file_exits(self, file_name):
+        file_id = self.get_id(file_name)
+        return True if file_id != -1 else False
 
     def upload_to_folder(self, file, folder_name):
         """Uploads a file to the give folder"""
         file_metadata = { 
             'name': file['name'], 
-            'parents':[self.get_folder_id(folder_name)]
+            'parents':[self.get_id(folder_name, mime_type=FOLDER_MIME_TYPE)]
         }
 
-        media = MediaFileUpload(file['full_path'])
+        # only upload if the file doesn't already exist in the drive
+        if(not self.file_exits(file['name'])):
+            media = MediaFileUpload(file['full_path'])
+        else:
+            return
 
         result = self._service.files().create(
             body=file_metadata,
@@ -84,7 +94,8 @@ class GoogleDrive():
         
         for field, params in options.items():
             op, value = params
-            query_statements.append("{0} {1} '{2}'".format(field, op, value))
+            if(value is not None):
+                query_statements.append("{0} {1} '{2}'".format(field, op, value))
 
         query_string = " and ".join(query_statements)
 
@@ -92,7 +103,6 @@ class GoogleDrive():
             
 def main():
     drive_instance = GoogleDrive()
-    files = drive_instance.get_files_in_folder('Family')
     
     file_to_upload = {
         'full_path': '../data/test.txt',

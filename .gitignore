@@ -106,6 +106,7 @@ venv.bak/
 # my adds
 credentials
 *credentials.json
+data
 dist
 .vscode
 .DS_Store
