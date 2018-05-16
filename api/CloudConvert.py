@@ -35,8 +35,6 @@ class CloudConvert():
     def delete_file(self, file):
         os.remove(file)
 
-
-
 def main():
     cc_instance = CloudConvert()
     cc_instance.convert_url_to_pdf('https://www.howtographql.com/basics/0-introduction/')
