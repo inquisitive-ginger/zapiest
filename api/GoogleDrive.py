@@ -53,7 +53,6 @@ class GoogleDrive():
         ).execute()
 
         id_container = result.get('files', [])
-        print(result)
 
         return id_container[0]['id'] if len(id_container) > 0 else -1
 
@@ -74,11 +73,7 @@ class GoogleDrive():
             'parents':[self.get_id(folder_name, mime_type=FOLDER_MIME_TYPE)]
         }
 
-        # only upload if the file doesn't already exist in the drive
-        if(not self.file_exits(file['name'])):
-            media = MediaFileUpload(file['full_path'])
-        else:
-            return
+        media = MediaFileUpload(file['full_path'])
 
         result = self._service.files().create(
             body=file_metadata,

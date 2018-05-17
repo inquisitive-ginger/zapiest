@@ -6,20 +6,29 @@ from api.CloudConvert import CloudConvert
 from api.GoogleDrive import GoogleDrive
 from api.Pocket import Pocket
 
-pocket_instance = Pocket()
-cc_instance = CloudConvert()
-drive_instance = GoogleDrive()
+def format_file_name(name):
+    return ''.join(e for e in name if e.isalnum())
 
-pockets = pocket_instance.get_pockets(tag='convert', recent=True)
+def main():
+    pocket_instance = Pocket()
+    cc_instance = CloudConvert()
+    drive_instance = GoogleDrive()
 
-for pocket in pockets:
-    converted_file = cc_instance.convert_url_to_pdf(pocket['given_url'])
-    file_name = pocket['resolved_title']
+    pockets = pocket_instance.get_pockets(tag='convert', recent=False)
 
-    file_to_upload = {
-        'full_path': '../data/{0}'.format(converted_file),
-        'name': file_name
-    }
+    for pocket in pockets:
+        file_name = '{0}.pdf'.format(format_file_name(pocket['resolved_title']))
+        # only convert if file doesn't exist in drive
+        if(not drive_instance.file_exits(file_name)):
+            converted_file = cc_instance.convert_url_to_pdf(pocket['given_url'])
 
-    drive_instance.upload_to_folder(file_to_upload, 'Unprocessed')
-    cc_instance.delete_file(file_to_upload['full_path'])
+            file_to_upload = {
+                'full_path': '../data/{0}'.format(converted_file),
+                'name': file_name
+            }
+
+            drive_instance.upload_to_folder(file_to_upload, 'Unprocessed')
+            cc_instance.delete_file(file_to_upload['full_path'])
+
+if __name__ == '__main__':
+    main()
