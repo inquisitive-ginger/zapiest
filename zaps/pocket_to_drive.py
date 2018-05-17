@@ -14,7 +14,7 @@ def main():
     cc_instance = CloudConvert()
     drive_instance = GoogleDrive()
 
-    pockets = pocket_instance.get_pockets(tag='convert', recent=False)
+    pockets = pocket_instance.get_pockets(tag='convert', recent=True)
 
     for pocket in pockets:
         file_name = '{0}.pdf'.format(format_file_name(pocket['resolved_title']))
